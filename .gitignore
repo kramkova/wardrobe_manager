@@ -1,1 +1,3 @@
-category_trees.py
+*.db
+.idea
+.ruff_cache

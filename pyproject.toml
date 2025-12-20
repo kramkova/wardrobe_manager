@@ -6,12 +6,18 @@ authors = [
     {name = "Maria Kramkova",email = "m.kramkova@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.13.*"
 dependencies = [
-    "python-unittest (>=0.2.16,<0.3.0)"
+    "python-unittest (==0.2.16)",
+    "pre-commit (==4.5.1)",
+    "ruff (==0.14.10)",
+    "isort (==7.0.*)"
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.format]
+quote-style = "single"
