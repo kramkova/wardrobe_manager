@@ -1,3 +1,6 @@
 *.db
-.idea
-.ruff_cache
+.idea/
+.ruff_cache/
+databases/
+/shelf/
+/workspace.xml

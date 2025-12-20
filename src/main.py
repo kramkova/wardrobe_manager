@@ -1,22 +1,32 @@
-# from models import Category, Item, Outfit
-# from sql_engine import SQLAssistant
+from datetime import datetime
+
+from models import Category, Item
+from sql_engine import SQLAssistant
 
 
 def main():
-    # user = input('Введите текст для анализа: ')
-    # assistant = SQLAssistant(user)
+    user = input('Добро пожаловать в сервис Wardrobe Manager!\nВведите ваше имя: ')
+    assistant = SQLAssistant(user)
 
-    """data = CorpusSearch(text)
-        data.find_postcard_in_corpus()
-        data.display_corpus_postcard()
+    add_items = input('Добавить новую вещь? (да/нет) ').lower() == 'да'
+    while add_items:
+        name = input('Название вещи: ')
+        category = input('Категория: ')
+        colour = input('Цвет: ')
+        brand = input('Фирма-производитель (опционально): ')
+        price = int(input('Цена (опц.): '))
+        start = input('Дата приобретения в формате ГГГГ-ММ-ДД (опционально): ')
 
-        metrics_analyzer = ComplexityMetrics(text)
-        parser = DependencyParser(text)
+        start_date = datetime.strptime(start, '%Y-%m-%d').date()
 
-        result = AnalysisResult(text, metrics_analyzer, parser)
-        result.display()
-
-
-    if __name__ == '__main__':
-        main()
-    """
+        assistant.add_item(
+            Item(
+                name=name,
+                category=Category(category),
+                colour=colour,
+                brand=brand,
+                price=price,
+                start=start_date,
+            )
+        )
+        add_items = input('Добавить ещё? (да/нет) ').lower() == 'да'
