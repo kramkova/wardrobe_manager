@@ -5,10 +5,10 @@ repos:
       - id: ruff
       - id: ruff-format
 
-  #- repo: local
-    #hooks:
-      #- id: pytest
-        #name: Run tests
-        #entry: poetry run python -m unittest discover -s tests/
-        #language: system
-        #pass_filenames: false
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run tests
+        entry: poetry run python -m unittest discover -s tests/
+        language: system
+        pass_filenames: false

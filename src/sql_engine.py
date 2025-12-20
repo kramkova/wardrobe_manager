@@ -3,7 +3,7 @@ import random
 import sqlite3
 from collections import defaultdict
 from datetime import date, timedelta
-from src.models import Category, Item, Outfit
+from src.models import Category, Item, Outfit, Season
 from typing import Dict, List
 
 
@@ -47,20 +47,20 @@ class SQLAssistant:
         item_id INTEGER)
         """)
 
-        # Извлечение идентификаторов всех вещей и аутфитов
+        # Извлечение идентификаторов всех вещей и образов
         cursor.execute('SELECT id FROM items')
         self.items = list(i[0] for i in cursor.fetchall())
         cursor.execute('SELECT id FROM outfits')
         self.outfits = list(i[0] for i in cursor.fetchall())
 
-        # Создание словаря аутфитов
+        # Создание словаря образов
         cursor.execute('SELECT * FROM matching')
         matches = list(cursor.fetchall())
         self.outfit_items = defaultdict(list)
         for match in matches:
             self.outfit_items[match[0]].append(match[1])
 
-        # Извлечение избранных аутфитов
+        # Извлечение избранных образов
         cursor.execute('SELECT id FROM outfits WHERE liked == True')
         self.liked = list(cursor.fetchall())
 
@@ -93,12 +93,14 @@ class SQLAssistant:
             )
 
     def record_outfit(self, outfit: Outfit):
-        """Добавление аутфита в таблицу outfits, обновление таблиц matching и items"""
+        """Добавление образа в таблицу outfits, обновление таблиц matching и items"""
         with sqlite3.connect(self.database) as conn:
             if not self.outfits:
                 outfit_id = 1
             else:
-                outfit_id = max(self.outfits) + 1
+                outfit_id = (
+                    max(self.outfits) + 1
+                )  # Не len, чтобы после удаления данных нумерация не сбивалась
             self.outfits.append(outfit_id)
             cursor = conn.cursor()
             cursor.execute(
@@ -110,7 +112,7 @@ class SQLAssistant:
                     outfit.liked,
                 ),
             )
-            # Занесение пар аутфит-вещь в matching и обновление счётчика вещей
+            # Занесение пар образ-вещь в matching и обновление счётчика вещей
             for item_id in outfit.items:
                 cursor.execute(
                     'INSERT INTO matching (outfit_id, item_id) VALUES (?, ?)',
@@ -121,7 +123,7 @@ class SQLAssistant:
                     (item_id,),
                 )
 
-    def _create_cooccurrence_matrix(self) -> Dict[Dict[int]]:
+    def _create_cooccurrence_matrix(self) -> Dict[int, Dict[int, int]]:
         """Построение матрицы совместной носки вещей"""
         matrix = defaultdict(int)
 
@@ -134,7 +136,9 @@ class SQLAssistant:
 
         return matrix
 
-    def _create_weighted_cooccurrence_matrix(self, weight: int = 3) -> Dict[Dict[int]]:
+    def _create_weighted_cooccurrence_matrix(
+        self, weight: int
+    ) -> Dict[int, Dict[int, int]]:
         """Построение матрицы совместной носки вещей с повышенным коэффициентом для избранных сочетаний"""
         matrix = defaultdict(int)
 
@@ -150,9 +154,22 @@ class SQLAssistant:
 
         return matrix
 
-    def _calculate_compatibility(self, item1: int, item2: int) -> int:
+    def _calculate_compatibility(self, item1: int, item2: int, weight: int = 3) -> int:
         """Вычисление коэффициента сочетаемости двух вещей на основе взвешенной частотности и сезона"""
-        pass
+        score = 0
+
+        weighted_matrix = self._create_weighted_cooccurrence_matrix(weight)
+        if item2 in weighted_matrix[item1]:
+            score += weighted_matrix[item1][item2]
+
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT season FROM items WHERE id in ?', ((item1, item2),))
+            seasons = cursor.fetchall()
+        if seasons[0] == seasons[1] or Season.ALLSEASON in seasons:
+            score += 10
+
+        return score
 
     def get_items_by_category(self, category: Category) -> List[int]:
         """Получение списка идентификаторов вещей определённой категории"""
@@ -162,6 +179,12 @@ class SQLAssistant:
                 'SELECT id FROM items WHERE category == ?', (category.value,)
             )
             return cursor.fetchall()
+
+    def get_wardrobe(self) -> Dict[Category, List[int]]:
+        wardrobe = {}
+        for category in Category:
+            wardrobe[category] = [item for item in self.get_items_by_category(category)]
+        return wardrobe
 
     def get_recently_worn_items(self, days: int = 7) -> List[int]:
         """Получение списка идентификаторов вещей, использованных в последние n дней (по умолчанию 7)"""
@@ -193,30 +216,65 @@ class SQLAssistant:
             most_worn = cursor.fetchall()
         return most_worn[:top]
 
-    def build_outfit(self, explorativity: float = 0.0) -> List[int]:
-        """Получение случайной рекомендации аутфита с коэффициентом эксплоративности предложений,
+    def build_outfit(self, base_item: int = 0, explorativity: float = 0.0) -> List[int]:
+        """Получение рекомендации случайно собранного образа.
+        Может принимать идентификатор вещи, к которой нужно подобрать образ,
+        и коэффициент эксплоративности предложений (по умолчанию 0),
         где 0 - консервативный стиль (предложение самых статистически частых сочетаний),
-        1 - новаторский стиль (предложение любых, даже не встречавшихся раньше сочетаний)"""
+        1 - новаторский стиль (предложение любых, даже не встречавшихся раньше сочетаний)."""
         wardrobe = {}
         for category in Category:
-            wardrobe[category] = self.get_items_by_category(category)
+            wardrobe[category] = {
+                item: 0 for item in self.get_items_by_category(category)
+            }
 
-        # Выбор случайной вещи в качестве основы аутфита
-        base_item = random.choice(wardrobe[Category.TOP] + wardrobe[Category.OVERALLS])
-        recommendation = [base_item]
+        # Выбор случайной вещи в качестве основы образа
+        if not base_item:
+            base_item = random.choice(
+                list(wardrobe[Category.TOP].keys())
+                + list(wardrobe[Category.OVERALLS].keys())
+            )
+        recommendation = [
+            base_item,
+        ]
 
-        # Сортировка остальных категорий по коэффициенту совместимости (Category.LAYER, Category.BOTTOM, Category.ACCESSORY, Category.COAT, Category.SHOES)
+        # Сортировка остальных категорий по коэффициенту совместимости
         for category in Category:
-            if category in (Category.TOP, Category.OVERALLS):
+            if base_item in wardrobe[category]:
                 continue
             if base_item in wardrobe[Category.OVERALLS] and category == Category.BOTTOM:
                 continue
+            for possible_item in wardrobe[category]:
+                wardrobe[category][possible_item] = self._calculate_compatibility(
+                    possible_item, base_item
+                )
 
-        # Выбор случайной вещи в каждой категории из указанного перцентиля рейтинга
+            # Выбор случайной вещи в каждой категории из указанного перцентиля рейтинга
+            sorted_items = sorted(
+                wardrobe[category].items(), key=lambda x: x[1], reverse=True
+            )
+            stop_search = round(len(sorted_items) * explorativity)
+            if not stop_search:
+                stop_search = 1
+            top_matching_items = sorted_items[:stop_search]
+            chosen_item = random.choice(top_matching_items)
+            recommendation.append(chosen_item)
 
         return recommendation
 
-    def get_statistics(self):
-        """Получение статистики пользователя: количество вещей (общее и по категориям), аутфитов (общее и по стилям),
-        топ самых частых и редких вещей, любимые сочетания"""
-        pass
+    def get_statistics(self) -> Dict[str, str | int | List[int]]:
+        """Получение статистики пользователя: количество вещей (общее и по категориям), образов,
+        топ самых частых и редких вещей, список недавних вещей"""
+        user_stats = {
+            'name': self.name,
+            'items number': len(self.items),
+            'outfits number': len(self.outfits),
+            'recent items': self.get_recently_worn_items(),
+            'most worn': self.get_most_worn_items(),
+            'least worn': self.get_underused_items(),
+        }
+        wardrobe = self.get_wardrobe()
+        for cat in Category:
+            user_stats += f'{cat.value}: {len(wardrobe[cat])}'
+
+        return user_stats
