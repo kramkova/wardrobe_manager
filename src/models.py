@@ -4,26 +4,41 @@ from typing import List
 
 
 class Category(Enum):
-    TOP = 'Верх'
-    BOTTOM = 'Низ'
-    OVERALLS = 'Костюм'
-    LAYER = 'Кофта'
-    COAT = 'Верхняя одежда'
-    ACCESSORY = 'Аксессуар'
-    SHOES = 'Обувь'
+    TOP = "Верх"
+    BOTTOM = "Низ"
+    OVERALLS = "Костюм"
+    LAYER = "Кофта"
+    COAT = "Верхняя одежда"
+    ACCESSORY = "Аксессуар"
+    SHOES = "Обувь"
 
 
 class Season(Enum):
-    WINTER = 'Зима'
-    SUMMER = 'Лето'
-    MIDSEASON = 'Демисезон'
-    ALLSEASON = 'Круглогодично'
+    WINTER = "Зима"
+    SUMMER = "Лето"
+    MIDSEASON = "Демисезон"
+    ALLSEASON = "Круглогодично"
+
+
+class Style(Enum):
+    CASUAL = "Повседневный"
+    SPORT = "Спортивный"
+    FANCY = "Нарядный"
+    WORK = "Деловой"
 
 
 class Item:
-    def __init__(self, item_id: int, name: str, category: Category, colour: str, season: Season = Season.ALLSEASON,
-                 start: date = date.today(), brand: str = None, price: int = None, wear_count: int = 0):
-        self.id = item_id
+    def __init__(
+        self,
+        name: str,
+        category: Category,
+        colour: str,
+        season: Season = Season.ALLSEASON,
+        start: date = date.today(),
+        brand: str = None,
+        price: int = None,
+        wear_count: int = 0,
+    ):
         self.name = name
         self.category = category
         self.colour = colour
@@ -35,8 +50,14 @@ class Item:
 
 
 class Outfit:
-    def __init__(self, outfit_id: int, items: List[int], wear_date: date = date.today(), liked: bool = False):
-        self.id = outfit_id
+    def __init__(
+        self,
+        items: List[int],
+        wear_date: date = date.today(),
+        style: Style = Style.CASUAL,
+        liked: bool = False,
+    ):
         self.items = items
         self.date = wear_date
+        self.style = style
         self.liked = liked
