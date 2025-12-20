@@ -4,27 +4,27 @@ from typing import List
 
 
 class Category(Enum):
-    TOP = "Верх"
-    BOTTOM = "Низ"
-    OVERALLS = "Костюм"
-    LAYER = "Кофта"
-    COAT = "Верхняя одежда"
-    ACCESSORY = "Аксессуар"
-    SHOES = "Обувь"
+    TOP = 'Верх'
+    BOTTOM = 'Низ'
+    OVERALLS = 'Костюм'
+    LAYER = 'Кофта'
+    COAT = 'Верхняя одежда'
+    ACCESSORY = 'Аксессуар'
+    SHOES = 'Обувь'
 
 
 class Season(Enum):
-    WINTER = "Зима"
-    SUMMER = "Лето"
-    MIDSEASON = "Демисезон"
-    ALLSEASON = "Круглогодично"
+    WINTER = 'Зима'
+    SUMMER = 'Лето'
+    MIDSEASON = 'Демисезон'
+    ALLSEASON = 'Круглогодично'
 
 
 class Style(Enum):
-    CASUAL = "Повседневный"
-    SPORT = "Спортивный"
-    FANCY = "Нарядный"
-    WORK = "Деловой"
+    CASUAL = 'Повседневный'
+    SPORT = 'Спортивный'
+    FANCY = 'Нарядный'
+    WORK = 'Деловой'
 
 
 class Item:
@@ -35,8 +35,8 @@ class Item:
         colour: str,
         season: Season = Season.ALLSEASON,
         start: date = date.today(),
-        brand: str = None,
-        price: int = None,
+        brand: str | None = None,
+        price: int = 0,
         wear_count: int = 0,
     ):
         self.name = name

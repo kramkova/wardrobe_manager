@@ -1,6 +1,7 @@
 import unittest
 from datetime import date
-from src.models import Category, Season, Item, Outfit
+
+from src.models import Category, Item, Outfit, Season
 
 
 class TestItemConstructor(unittest.TestCase):
@@ -15,7 +16,7 @@ class TestItemConstructor(unittest.TestCase):
         self.assertEqual(self.item.start, date.today())
         self.assertEqual(self.item.wear_count, 0)
         self.assertEqual(self.item.brand, None)
-        self.assertEqual(self.item.price, None)
+        self.assertEqual(self.item.price, 0)
 
 
 class TestOutfitConstructor(unittest.TestCase):
