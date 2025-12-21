@@ -1,6 +1,7 @@
 import unittest
 from datetime import date
 
+# Неправильные импорты. Следовало так: from your_module import Category, Item, Outfit, Season
 from src.models import Category, Item, Outfit, Season
 
 

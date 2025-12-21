@@ -1,5 +1,6 @@
 import unittest
 
+# Неправильные импорты. Следовало так: from your_module import Category, Item, Outfit, Season, SQLAssistant
 from src.models import Category, Item, Outfit, Season
 from src.sql_engine import SQLAssistant
 

@@ -11,17 +11,17 @@ dependencies = [
     "python-unittest (==0.2.16)",
     "pre-commit (==4.5.1)",
     "ruff (==0.14.10)",
-    "isort (==7.0.*)"
+    "isort (==7.0.*)"  # isort и так есть в ruff
 ]
 
 
-[build-system]
+[build-system]  # Этот блок нужен, только если вы планируете собирать пакет. Если так, то необходимо указать `tool.poetry.packages` (обязательно при src-layout)
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py310"  # Вы используете python3.13, а ruff "натравливаете" на python3.10 - версия должна совпадать
 exclude = ["tests/"]
 
 [tool.ruff.format]
@@ -30,7 +30,7 @@ quote-style = "single"
 [tool.ruff.lint]
 select = [
     "E", "F", "I", "W", "C", "N",
-    "Q", "RSE", "RET", "SIM", "TID", "ARG", "PL", "RUF"
+    "Q", "RSE", "RET", "SIM", "TID", "ARG", "PL", "RUF"  # Почему так мало правил? Почему исключили остальные?
 ]
 ignore = [
     "D100", "D104", "G004", "PLR0913", "Q000",

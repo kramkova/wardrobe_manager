@@ -1,6 +1,8 @@
+# Нет и докстрингов
+
 from datetime import date
 from enum import Enum
-from typing import List
+from typing import List  # Такой способ аннотации типа устарел. Вместо него используйте `list[...]`
 
 
 class Category(Enum):

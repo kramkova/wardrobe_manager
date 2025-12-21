@@ -3,8 +3,9 @@ import random
 import sqlite3
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import Dict, List
+from typing import Dict, List  # Такой способ аннотации типа устарел. Вместо него используйте `list[...]` / `dict[..., ...]`
 
+# Неправильный импорт. Следовало так: from .models import Category, Item, Outfit, Season
 from src.models import Category, Item, Outfit, Season
 
 

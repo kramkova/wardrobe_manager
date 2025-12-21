@@ -1,5 +1,5 @@
 *.db
-.idea/
+.idea/  # Вы добавили его в игнор уже после того, как запушили .idea
 .ruff_cache/
 databases/
 /shelf/
