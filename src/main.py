@@ -1,7 +1,10 @@
+# Нет аннотации типов ретернов и докстрингов
+
 from datetime import datetime
 
+# Неправильные импорты. Следовало так: from .models import Category, Item, Outfit, Season, Style
 from models import Category, Item, Outfit, Season, Style
-from sql_engine import SQLAssistant
+from sql_engine import SQLAssistant  # from .sql_engine import SQLAssistant
 
 
 def add_item(service: SQLAssistant):
